@@ -65,7 +65,7 @@ stop(_State) ->
 %% Description: Starts apps this depends on, then starts this
 %%--------------------------------------------------------------------
 start_all() ->
-    [application:start(App) || App <- [sasl, conferencr]].
+    [application:start(App) || App <- [sasl, inets, conferencr]].
 
 %% ====================================================================
 %% Internal functions

@@ -1,17 +1,17 @@
 -module(conference). 
 -export([start/1]).
 
-start([]) ->
+start({[], _}) ->
 	{reply, empty_conference_list};
 
-start(Conference) ->
+start({Numbers, CallerEmail}) ->
 	error_logger:info_msg("C: Start ~n"),
-	case is_list(Conference) of
+	case is_list(Numbers) of
 				false ->
 					error_logger:info_msg("C: no_member_list ~n"),
 					{error, no_member_list};
 				true ->
-					lists:map(fun(Member) -> call(Member) end, Conference)
+					lists:map(fun(Number) -> call(Number, CallerEmail) end, Numbers)
 			
 	end.
 
@@ -20,9 +20,9 @@ stop() ->
 	
 %% PRIVATE FUNCTIONS %%
 
-call(Number) ->
+call(Number, CallerEmail) ->
 	Normalised = normalise_number(Number),
-	Pid = spawn( fun() -> outbound_call:call(Normalised) end).
+	Pid = spawn( fun() -> outbound_call:call(Normalised, CallerEmail) end).
 
 normalise_number(Number) ->
 	NoDashes = re:replace(Number,"-","",[{return,list}, global]),

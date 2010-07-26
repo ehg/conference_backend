@@ -63,23 +63,36 @@ handle("/Conference.svc/Start", Req) ->
 	
 	Struct = mochijson2:decode(Data),
  	error_logger:info_msg("STRUCT ~p~n", [Struct]),
- 	%% { "numbers" : ["07800813656", "08451232212"] }
- 	Conference = struct:get_value(<<"numbers">>, Struct),
- 	conference_manager:start_conference(Conference),
- 	%% if there are no exceptions, send numbers to conference manager
-  	success(Req, Conference);
+ 	%% { "email" : "blah@blah.com", "password" : "HASH", 
+	%%   "numbers" : ["07800813656", "08451232212"] }
+	CallerEmail = struct:get_value(<<"email">>, Struct),
+	Authorization = Req:get_header_value("Authorization"),
+ 	Numbers = struct:get_value(<<"numbers">>, Struct),
+	Conference = {Numbers, CallerEmail},
+	
+	% check authorisation with conference manager
+ 	AuthResult = conference_manager:authorise(Authorization),
+ 	
+	case AuthResult of
+		true -> conference_manager:start_conference(Conference),
+				success(Req, "success");
+		_ ->	unauthorised(Req) 
+	end;
 
 handle(_, Req) ->
   Req:not_found().
 
 error(Req, Body) ->
-  Req:respond({500, [{"Content-Type", "text/plain"}], Body}).
+  Req:respond({500, [{"Content-Type", "application/json"}], Body}).
+
+unauthorised(Req) ->
+  Req:respond({401, [{"Content-Type", "application/json"}], "Unauthorised."}).
 
 notfound(Req, Body) ->
-  Req:respond({404, [{"Content-Type", "text/plain"}], Body}).
+  Req:respond({404, [{"Content-Type", "application/json"}], Body}).
 
 success(Req, Body) ->
-  Req:respond({200, [{"Content-Type", "text/plain"}], Body}).
+  Req:respond({200, [{"Content-Type", "application/json"}], Body}).
 
 subst(Template, Values) when is_list(Values) ->
   list_to_binary(lists:flatten(io_lib:fwrite(Template, Values))).

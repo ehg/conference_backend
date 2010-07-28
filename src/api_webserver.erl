@@ -68,7 +68,7 @@ handle("/Conference.svc/Start", Req) ->
 	%CallerEmail = binary_to_list(struct:get_value(<<"email">>, Struct)),
 	%Authorization = Req:get_header_value("Authorization"),
  	Numbers = struct:get_value(<<"numbers">>, Struct),
-	Conference = {Numbers, CallerEmail},
+	Conference = {Numbers, "dummy@jumpwire.co.uk"},
 	
 	conference_manager:start_conference(Conference),
 	success(Req, "success");

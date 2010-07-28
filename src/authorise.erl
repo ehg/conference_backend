@@ -25,7 +25,7 @@ authorise(Token) ->
 
 request_authorisation(Token) ->
 	% make http request
-	URL = "http://192.168.66.14:3000",
+	URL = "http://switch.ucf.org.uk:3000",
 	case http:request(get, {URL, [{"Authorization", Token}]}, [], []) of
 		{ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} ->
 			parse_response(Code);

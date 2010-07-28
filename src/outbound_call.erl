@@ -1,11 +1,11 @@
 -module(outbound_call).
--export([call/2]).
+-export([call/3]).
 
-call(OutgoingNumber, CallerEmail) ->
+call(OutgoingNumber, CallerEmail, ConferenceUUID) ->
 	%% we'll get our own unique UUID here, not sure why yet
 	case freeswitch:api(freeswitch@stan, create_uuid) of
 		{ok, UUID} ->
-			case freeswitch:bgapi(freeswitch@stan, originate, "{origination_uuid="++UUID++",origination_caller_id_number=08451232212,ignore_early_media=true,caller_email=" ++ CallerEmail ++"}sofia/gateway/gradwell/" ++ OutgoingNumber ++ " &park()") of
+			case freeswitch:bgapi(freeswitch@stan, originate, "{origination_uuid="++UUID++",origination_caller_id_number=08451232212,ignore_early_media=true,caller_email=" ++ binary_to_list(CallerEmail) ++",conference_uuid="++ConferenceUUID++"}sofia/gateway/gradwell/" ++ OutgoingNumber ++ " &park()") of
 				{error, Reason} ->
 					io:format("Error in origination command: ~p~n", [Reason]);
 				{ok, _JobID} ->
@@ -34,6 +34,7 @@ call(OutgoingNumber, CallerEmail) ->
 							_Else ->
 								io:format("starting for ~pn", [UUID]),
 								put(uuid, UUID),
+								put(conference_uuid, ConferenceUUID),
 								wait_for_park()
 					end				
 			end;
@@ -137,7 +138,7 @@ bridge_to_conference(UUID) ->
 	freeswitch:sendmsg(freeswitch@stan, UUID, [{"call-command", "execute"}, 
 															{"event-lock", "true"}, 
 															{"execute-app-name", "conference"}, 
-															{"execute-app-arg", "testconf"}]),
+															{"execute-app-arg", get(conference_uuid)}]),
 														%% need error checking
 	wait_for_execute_complete(),
 	in_conference().
@@ -167,7 +168,6 @@ in_conference() ->
 	end.
 
 press_one_to_listen(Name) ->
-	%%say_text(get(uuid), "Hello " ++ Name ++ ". You have been invited to join a conference. Please press 1 to join, or any other key to hang up."),
 	play(get(uuid), "invited.wav"),
 	receive 
 		{call_event, Data} ->

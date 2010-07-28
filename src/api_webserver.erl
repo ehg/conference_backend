@@ -70,14 +70,9 @@ handle("/Conference.svc/Start", Req) ->
  	Numbers = struct:get_value(<<"numbers">>, Struct),
 	Conference = {Numbers, CallerEmail},
 	
-	% check authorisation with conference manager
- 	AuthResult = conference_manager:authorise(Authorization),
- 	
-	case AuthResult of
-		true -> conference_manager:start_conference(Conference),
-				success(Req, "success");
-		_ ->	unauthorised(Req) 
-	end;
+	conference_manager:start_conference(Conference),
+	success(Req, "success");
+
 
 handle(_, Req) ->
   Req:not_found().

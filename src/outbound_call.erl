@@ -1,7 +1,7 @@
 -module(outbound_call).
--export([call/2]).
+-export([call/3]).
 
-call(OutgoingNumber, CallerEmail) ->
+call(OutgoingNumber, CallerEmail, ConferenceUUID) ->
 	%% we'll get our own unique UUID here, not sure why yet
 	case freeswitch:api(freeswitch@stan, create_uuid) of
 		{ok, UUID} ->
@@ -34,6 +34,7 @@ call(OutgoingNumber, CallerEmail) ->
 							_Else ->
 								io:format("starting for ~pn", [UUID]),
 								put(uuid, UUID),
+								put(conference_uuid, ConferenceUUID),
 								wait_for_park()
 					end				
 			end;
@@ -62,7 +63,6 @@ wait_for_park() ->
 					set_call_start_time(proplists:get_value("Event-Date-Timestamp", Rest));					
 				"CHANNEL_PARK" ->
 					error_logger:info_msg("myhandler ~p: call parked~p~n"),
-			
 					connected(UUID);	
 				"CHANNEL_HANGUP" ->
 					process_hangup(proplists:get_value("Hangup-Cause", Rest));
@@ -137,7 +137,7 @@ bridge_to_conference(UUID) ->
 	freeswitch:sendmsg(freeswitch@stan, UUID, [{"call-command", "execute"}, 
 															{"event-lock", "true"}, 
 															{"execute-app-name", "conference"}, 
-															{"execute-app-arg", "testconf"}]),
+															{"execute-app-arg", get(conference_uuid)}]),
 														%% need error checking
 	wait_for_execute_complete(),
 	in_conference().

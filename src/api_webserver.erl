@@ -65,7 +65,7 @@ handle("/Conference.svc/Start", Req) ->
  	error_logger:info_msg("STRUCT ~p~n", [Struct]),
  	%% { "email" : "blah@blah.com", "password" : "HASH", 
 	%%   "numbers" : ["07800813656", "08451232212"] }
-	CallerEmail = struct:get_value(<<"email">>, Struct),
+	CallerEmail = binary_to_list(struct:get_value(<<"email">>, Struct)),
 	Authorization = Req:get_header_value("Authorization"),
  	Numbers = struct:get_value(<<"numbers">>, Struct),
 	Conference = {Numbers, CallerEmail},

@@ -16,7 +16,7 @@ start({Numbers, CallerEmail}) ->
 							lists:map(fun(Number) -> call(Number, CallerEmail, UUID) end, Numbers)
 				end;
 		Else ->
-			error_logger:error_msg("C: Create UUID failed: ~p ~n", [Else])
+			error_logger:error_msg("Conference: Create UUID failed: ~p ~n", [Else])
 			
 	end.
 

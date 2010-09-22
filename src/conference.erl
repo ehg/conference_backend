@@ -13,7 +13,7 @@ start({Numbers, CallerEmail}) ->
 							error_logger:info_msg("C: no_member_list ~n"),
 							{error, no_member_list};
 					true ->
-							lists:map(fun(Number) -> call(Number, CallerEmail, UUID) end, Numbers)
+							lists:map(fun(Number) -> call(Number, CallerEmail, UUID, length(Numbers)) end, Numbers)
 				end;
 		Else ->
 			error_logger:error_msg("C: Create UUID failed: ~p ~n", [Else])
@@ -25,9 +25,9 @@ stop() ->
 	
 %% PRIVATE FUNCTIONS %%
 
-call(Number, CallerEmail, ConferenceUUID) ->
+call(Number, CallerEmail, ConferenceUUID, ConferenceNumCalls) ->
 	Normalised = normalise_number(Number),
-	Pid = spawn( fun() -> outbound_call:call(Normalised, CallerEmail, ConferenceUUID) end).
+	Pid = spawn( fun() -> outbound_call:call(Normalised, CallerEmail, ConferenceUUID, ConferenceNumCalls) end).
 
 normalise_number(Number) ->
 	NoDashes = re:replace(Number,"-","",[{return,list}, global]),

@@ -5,18 +5,18 @@ start({[], _}) ->
 	{reply, empty_conference_list};
 
 start({Numbers, CallerEmail}) ->
-	error_logger:info_msg("C: Start ~n"),
+	error_logger:info_msg("Conference: Start ~n"),
 	case freeswitch:api(freeswitch@stan, create_uuid) of
 		{ok, UUID} ->
 				case is_list(Numbers) of
 					false ->
-							error_logger:info_msg("C: no_member_list ~n"),
+							error_logger:info_msg("Conference: no_member_list ~n"),
 							{error, no_member_list};
 					true ->
 							lists:map(fun(Number) -> call(Number, CallerEmail, UUID, length(Numbers)) end, Numbers)
 				end;
 		Else ->
-			error_logger:error_msg("C: Create UUID failed: ~p ~n", [Else])
+			error_logger:error_msg("Conference: Create UUID failed: ~p ~n", [Else])
 			
 	end.
 

@@ -68,13 +68,14 @@ handle("/Conference.svc/Start", Req) ->
 	CallerEmail = struct:get_value(<<"email">>, Struct),
 	Authorization = Req:get_header_value("Authorization"),
  	Numbers = struct:get_value(<<"numbers">>, Struct),
-	Conference = {Numbers, CallerEmail},
+	
 	
 	% check authorisation with conference manager
- 	AuthResult = conference_manager:authorise(Authorization),
- 	
+ 	{AuthResult, Cli} = conference_manager:authorise(Authorization),
+		
 	case AuthResult of
-		true -> conference_manager:start_conference(Conference),
+		true -> Conference = {Numbers, CallerEmail, Cli},
+				conference_manager:start_conference(Conference),
 				success(Req, "success");
 		_ ->	unauthorised(Req) 
 	end;

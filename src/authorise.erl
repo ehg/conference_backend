@@ -27,15 +27,15 @@ request_authorisation(Token) ->
 	% make http request
 	URL = "http://switch.ucf.org.uk:3000",
 	case http:request(get, {URL, [{"Authorization", Token}]}, [], []) of
-		{ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} ->
-			parse_response(Code);
+		{ok, {{_Version, Code, _ReasonPhrase}, _Headers, Body}} ->
+			parse_response(Code, Body);
 		_ -> 
 			false
 	end.
 
 
-parse_response(Body) ->
-	case Body of
-		200 -> true;
-		_ -> false
+parse_response(Code, Body) ->
+	case Code of
+		200 -> {true, Body};
+		_ -> {false, authorisation_error}
 	end.

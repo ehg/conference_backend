@@ -3,9 +3,9 @@
 
 call(OutgoingNumber, CallerEmail, ConferenceUUID, ConferenceNumCalls, Cli) ->
 	%% we'll get our own unique UUID here, not sure why yet
-	case freeswitch:api(freeswitch@stan, create_uuid) of
+	case freeswitch:api(freeswitch@localhost, create_uuid) of
 		{ok, UUID} ->
-			case freeswitch:bgapi(freeswitch@stan, originate, "{origination_uuid="++UUID++
+			case freeswitch:bgapi(freeswitch@localhost, originate, "{origination_uuid="++UUID++
 									  						  ",origination_caller_id_number=" ++ Cli ++
 									  						  ",ignore_early_media=true,caller_email=" ++ 
 									  						   CallerEmail ++
@@ -17,7 +17,7 @@ call(OutgoingNumber, CallerEmail, ConferenceUUID, ConferenceNumCalls, Cli) ->
 					io:format("UUID: ~p~n", [UUID]),
 					Gethandle = fun(Recusef, Count) ->
 									io:format("Counted ~p", [Count]),
-									case freeswitch:handlecall(freeswitch@stan, UUID) of
+									case freeswitch:handlecall(freeswitch@localhost, UUID) of
 										{error, badsession} when Count > 4 ->
 												{error, badsession};
 										{error, badsession} ->
@@ -97,7 +97,7 @@ connected(UUID) ->
 	press_one_to_listen(get(name)).
 
 play(UUID, File) ->
-	freeswitch:sendmsg(freeswitch@stan, UUID, [{"call-command", "execute"}, 
+	freeswitch:sendmsg(freeswitch@localhost, UUID, [{"call-command", "execute"}, 
 															{"event-lock", "true"}, 
 															{"execute-app-name", "playback"}, 
 															{"execute-app-arg", "/usr/local/freeswitch/sounds/en/us/callie/conference/8000/" ++ File}]),
@@ -118,7 +118,7 @@ wait_for_execute_complete() ->
 				"DTMF" ->
 					Dtmf = proplists:get_value("DTMF-Digit", Rest),
 					
-					case freeswitch:bgapi(freeswitch@stan, break, get(uuid) ++ " all") of
+					case freeswitch:bgapi(freeswitch@localhost, break, get(uuid) ++ " all") of
 						{error, Reason} ->
 							io:format("Error in break command: ~p~n", [Reason]);
 						{ok, _JobID} ->
@@ -139,7 +139,7 @@ wait_for_execute_complete() ->
 	
 bridge_to_conference(UUID) ->
 	error_logger:info_msg("~p : Putting ~p in the conference: ~n",[self(),UUID]),
-	freeswitch:sendmsg(freeswitch@stan, UUID, [{"call-command", "execute"}, 
+	freeswitch:sendmsg(freeswitch@localhost, UUID, [{"call-command", "execute"}, 
 															{"event-lock", "true"}, 
 															{"execute-app-name", "conference"}, 
 															{"execute-app-arg", get(conference_uuid)}]),
@@ -167,7 +167,7 @@ in_conference() ->
 					in_conference()
 			end;
 		{command, disconnect} ->
-			freeswitch:bgapi(freeswitch@stan, hangup, "NORMAL_CLEARING"),
+			freeswitch:bgapi(freeswitch@localhost, hangup, "NORMAL_CLEARING"),
 			disconnect()
 	end.
 

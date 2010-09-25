@@ -6,7 +6,7 @@ start({[], _}) ->
 
 start({Numbers, CallerEmail, Cli}) ->
 	error_logger:info_msg("Conference: Start ~n"),
-	case freeswitch:api(freeswitch@stan, create_uuid) of
+	case freeswitch:api(freeswitch@localhost, create_uuid) of
 		{ok, UUID} ->
 				case is_list(Numbers) of
 					false ->

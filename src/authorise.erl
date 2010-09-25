@@ -25,7 +25,7 @@ authorise(Token) ->
 
 request_authorisation(Token) ->
 	% make http request
-	URL = "http://switch.ucf.org.uk:3000",
+	URL = "http://conferencer.heroku.com/authorise",
 	case http:request(get, {URL, [{"Authorization", Token}]}, [], []) of
 		{ok, {{_Version, Code, _ReasonPhrase}, _Headers, Body}} ->
 			parse_response(Code, Body);

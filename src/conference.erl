@@ -4,20 +4,19 @@
 start({[], _}) ->
 	{reply, empty_conference_list};
 
-start({Numbers, CallerEmail}) ->
-	error_logger:info_msg("C: Start ~n"),
+start({Numbers, CallerEmail, Cli}) ->
+	error_logger:info_msg("Conference: Start ~n"),
 	case freeswitch:api(freeswitch@stan, create_uuid) of
 		{ok, UUID} ->
 				case is_list(Numbers) of
 					false ->
-							error_logger:info_msg("C: no_member_list ~n"),
+							error_logger:info_msg("Conference: no_member_list ~n"),
 							{error, no_member_list};
 					true ->
-							lists:map(fun(Number) -> call(Number, CallerEmail, UUID) end, Numbers)
+							lists:map(fun(Number) -> call(Number, CallerEmail, UUID, length(Numbers), Cli) end, Numbers)
 				end;
 		Else ->
-			error_logger:error_msg("C: Create UUID failed: ~p ~n", [Else])
-			
+			error_logger:error_msg("Conference: Create UUID failed: ~p ~n", [Else])		
 	end.
 
 stop() ->
@@ -25,9 +24,9 @@ stop() ->
 	
 %% PRIVATE FUNCTIONS %%
 
-call(Number, CallerEmail, ConferenceUUID) ->
+call(Number, CallerEmail, ConferenceUUID, ConferenceNumCalls, Cli) ->
 	Normalised = normalise_number(Number),
-	Pid = spawn( fun() -> outbound_call:call(Normalised, CallerEmail, ConferenceUUID) end).
+	Pid = spawn( fun() -> outbound_call:call(Normalised, CallerEmail, ConferenceUUID, ConferenceNumCalls, Cli) end).
 
 normalise_number(Number) ->
 	NoDashes = re:replace(Number,"-","",[{return,list}, global]),

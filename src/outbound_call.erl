@@ -1,11 +1,16 @@
 -module(outbound_call).
--export([call/4]).
+-export([call/5]).
 
-call(OutgoingNumber, CallerEmail, ConferenceUUID, ConferenceNumCalls) ->
+call(OutgoingNumber, CallerEmail, ConferenceUUID, ConferenceNumCalls, Cli) ->
 	%% we'll get our own unique UUID here, not sure why yet
 	case freeswitch:api(freeswitch@stan, create_uuid) of
 		{ok, UUID} ->
-			case freeswitch:bgapi(freeswitch@stan, originate, "{origination_uuid="++UUID++",origination_caller_id_number=01513292098,ignore_early_media=true,caller_email=" ++ CallerEmail ++",conf_num_calls="++ ConferenceNumCalls ++"}sofia/gateway/gradwell/" ++ OutgoingNumber ++ " &park()") of
+			case freeswitch:bgapi(freeswitch@stan, originate, "{origination_uuid="++UUID++
+									  						  ",origination_caller_id_number=" ++ Cli ++
+									  						  ",ignore_early_media=true,caller_email=" ++ 
+									  						   CallerEmail ++
+									  						   ",conf_num_calls="++ ConferenceNumCalls ++
+									  							"}sofia/gateway/gradwell/" ++ OutgoingNumber ++ " &park()") of
 				{error, Reason} ->
 					io:format("Error in origination command: ~p~n", [Reason]);
 				{ok, _JobID} ->

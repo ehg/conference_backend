@@ -7,8 +7,10 @@ call(OutgoingNumber, CallerEmail, ConferenceUUID, ConferenceNumCalls, Cli) ->
 		{ok, UUID} ->
 			Args = "{origination_uuid="++UUID++ ",origination_caller_id_number=" ++ Cli ++
 					",ignore_early_media=true,caller_email=" ++ CallerEmail ++
-					",conf_num_calls="++ ConferenceNumCalls ++
+					",conf_num_calls="++ integer_to_list(ConferenceNumCalls) ++
+					",billing_conference_uuid=" ++ ConferenceUUID ++
 					"}sofia/gateway/gradwell/" ++ OutgoingNumber ++ " &park()",
+			io:format("~p~n", [Args]),
 			case freeswitch:bgapi(freeswitch@localhost, originate, Args) of
 				{error, Reason} ->
 					io:format("Error in origination command: ~p~n", [Reason]);
@@ -87,7 +89,7 @@ wait_for_park() ->
 
 process_hangup(Cause) ->
 	error_logger:info_msg("Hangup detected, cause ~p~n",[Cause]),
-	ok.
+	disconnect().
 	
 set_call_start_time(Timestamp) ->
 	error_logger:info_msg("myhandler ~p: Time stamp ~pn",[self(), Timestamp]).

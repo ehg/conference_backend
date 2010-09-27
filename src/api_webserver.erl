@@ -20,8 +20,12 @@ start_link(Port) ->
 
 init([Port]) ->
   mochiweb_http:start([{port, Port},
-		       {loop, fun(Req) ->
-				  dispatch_requests(Req) end}]),
+		       {loop, fun(Req) -> dispatch_requests(Req) end},
+			   {ssl, true},
+			   {ssl_opts, [
+					{certfile, "svc.jumpwire.net.crt"},
+					{keyfile, "svc.jumpwire.net.key"}]}
+				]),
   erlang:monitor(process, mochiweb_http),
   {ok, []}.
 

@@ -10,23 +10,26 @@
 %%
 %% Exported Functions
 %%
--export([authorise/1]).
+-export([authorise/2]).
 
 %%
 %% API Functions
 %%
-authorise(Token) ->
+authorise(Token, Numbers) ->
 	% send authorisation request
-	request_authorisation(Token).
+	request_authorisation(Token, Numbers).
 
 %%
 %% Local Functions
 %%
 
-request_authorisation(Token) ->
+request_authorisation(Token, Numbers) ->
+	Json = mochijson2:encode(Numbers),
+	io:format("JSON auth: ~p~n", [Json]),
 	% make http request
+	ssl:start(),
 	URL = "https://conferencer.heroku.com/authorise",
-	case http:request(get, {URL, [{"Authorization", Token}]}, [], []) of
+	case http:request(post, {URL, [{"Authorization", Token}]}, "application/json", Json) of
 		{ok, {{_Version, Code, _ReasonPhrase}, _Headers, Body}} ->
 			parse_response(Code, Body);
 		_ -> 

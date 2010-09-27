@@ -5,7 +5,7 @@
 -export([start_link/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 			terminate/2, code_change/3, start_conference/1,
-		 	authorise/1]).
+		 	authorise/2]).
 
 start_link() ->
 	gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
@@ -16,8 +16,8 @@ stop() ->
 start_conference(Conference) ->
 	gen_server:call(?MODULE, {start_conference, Conference}).
 
-authorise(Token) ->
-	gen_server:call(?MODULE, {authorise, Token}).
+authorise(Token, Numbers) ->
+	gen_server:call(?MODULE, {authorise, {Token, Numbers}}).
 
 %% CALLBACKS
 
@@ -26,11 +26,11 @@ authorise(Token) ->
 init([]) ->
 	{ok, ets:new(?MODULE, [])}.
 
-handle_call({authorise, Token}, _From, State) ->
+handle_call({authorise, {Token, Numbers}}, _From, State) ->
 	error_logger:info_msg("CM: Authorise  ~n"),
 	% contact authorisation web service with email address and (hash of) password
 	% return result
-	Result = authorise:authorise(Token),
+	Result = authorise:authorise(Token, Numbers),
 	{reply, Result, State};
 
 handle_call({start_conference, Conference}, _From, State) ->

@@ -74,7 +74,7 @@ handle("/Conference.svc/Start", Req) ->
  	Numbers = struct:get_value(<<"numbers">>, Struct),
 
 	% check authorisation with conference manager
- 	{AuthResult, Cli} = conference_manager:authorise(Authorization),
+ 	{AuthResult, Cli} = conference_manager:authorise(Authorization, Numbers),
 		
 	case AuthResult of
 		true -> Conference = {Numbers, CallerEmail, Cli},

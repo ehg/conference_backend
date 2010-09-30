@@ -72,7 +72,7 @@ handle("/Conference.svc/Start", Req) ->
  	{AuthResult, Cli} = conference_manager:authorise(Authorization, Numbers),
 		
 	case AuthResult of
-		true -> Conference = {Numbers, CallerEmail, Cli},
+		200 -> Conference = {Numbers, CallerEmail, Cli},
 				conference_manager:start_conference(Conference),
 				success(Req, "success");
 		_ ->	error(Req, {AuthResult, Cli}) 

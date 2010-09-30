@@ -29,11 +29,24 @@ request_authorisation(Token, Numbers) ->
 	% make http request
 	ssl:start(),
 	URL = "https://conferencer.heroku.com/authorise",
-	case http:request(post, {URL, [{"Authorization", Token}]}, "application/json", Json) of
+	case http:request(post, {URL, [{"Authorization", Token}], "application/json", Json}, [], []) of
 		{ok, {{_Version, Code, _ReasonPhrase}, _Headers, Body}} ->
 			parse_response(Code, Body);
 		_ -> 
 			false
+	end.
+
+to_json(Numbers) ->
+	to_json(Numbers, "{ \"numbers\" : [").
+
+to_json([], Output) ->
+	Output ++  "]}";
+to_json([H|Numbers], Output) ->
+	case Numbers of
+        [] ->
+            to_json(Numbers, Output ++ "\"" ++ binary_to_list(H) ++ "\"");
+        _ ->
+        	to_json(Numbers, Output ++ "\"" ++ binary_to_list(H) ++ "\",")
 	end.
 
 

@@ -17,7 +17,12 @@ start_conference(Conference) ->
 	gen_server:call(?MODULE, {start_conference, Conference}).
 
 authorise(Token, Numbers) ->
-	gen_server:call(?MODULE, {authorise, {Token, Numbers}}).
+	try
+		gen_server:call(?MODULE, {authorise, {Token, Numbers}}, 10000)
+	catch Error:Reason -> error_logger:error_msg("Timeout ~p ~ p ~n", [Error, Reason]),
+						  {408, "Authorisation timeout"}
+						  end.
+	
 
 %% CALLBACKS
 

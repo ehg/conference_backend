@@ -75,14 +75,14 @@ handle("/Conference.svc/Start", Req) ->
 		true -> Conference = {Numbers, CallerEmail, Cli},
 				conference_manager:start_conference(Conference),
 				success(Req, "success");
-		_ ->	unauthorised(Req) 
+		_ ->	error(Req, {AuthResult, Cli}) 
 	end;
 
 handle(_, Req) ->
   Req:not_found().
 
-error(Req, Body) ->
-  Req:respond({500, [{"Content-Type", "application/json"}], Body}).
+error(Req, {Code, Body}) ->
+  Req:respond({Code, [{"Content-Type", "application/json"}], Body}).
 
 unauthorised(Req) ->
   Req:respond({401, [{"Content-Type", "application/json"}], "Unauthorised."}).

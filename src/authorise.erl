@@ -24,16 +24,16 @@ authorise(Token, Numbers) ->
 %%
 
 request_authorisation(Token, Numbers) ->
-	Json = mochijson2:encode(Numbers),
+	Json = to_json(Numbers),
 	io:format("JSON auth: ~p~n", [Json]),
 	% make http request
 	ssl:start(),
 	URL = "https://conferencer.heroku.com/authorise",
 	case http:request(post, {URL, [{"Authorization", Token}], "application/json", Json}, [], []) of
 		{ok, {{_Version, Code, _ReasonPhrase}, _Headers, Body}} ->
-			parse_response(Code, Body);
+			{Code, Body};
 		_ -> 
-			false
+			{408, request_timeout}
 	end.
 
 to_json(Numbers) ->
@@ -47,11 +47,4 @@ to_json([H|Numbers], Output) ->
             to_json(Numbers, Output ++ "\"" ++ binary_to_list(H) ++ "\"");
         _ ->
         	to_json(Numbers, Output ++ "\"" ++ binary_to_list(H) ++ "\",")
-	end.
-
-
-parse_response(Code, Body) ->
-	case Code of
-		200 -> {true, Body};
-		_ -> {false, authorisation_error}
 	end.

@@ -69,7 +69,7 @@ wait_for_park() ->
 					set_call_start_time(proplists:get_value("Event-Date-Timestamp", Rest));					
 				"CHANNEL_PARK" ->
 					error_logger:info_msg("myhandler ~p: call parked~p~n"),
-					connected(UUID);	
+					press_one_to_listen();	
 				"CHANNEL_HANGUP" ->
 					process_hangup(proplists:get_value("Hangup-Cause", Rest));
 				"CHANNEL_HANGUP" ->
@@ -94,9 +94,6 @@ process_hangup(Cause) ->
 set_call_start_time(Timestamp) ->
 	error_logger:info_msg("myhandler ~p: Time stamp ~pn",[self(), Timestamp]).
 	
-connected(UUID) ->
-	press_one_to_listen(get(name)).
-
 play(UUID, File) ->
 	freeswitch:sendmsg(freeswitch@localhost, UUID, [{"call-command", "execute"}, 
 															{"event-lock", "true"}, 
@@ -172,7 +169,11 @@ in_conference() ->
 			disconnect()
 	end.
 
-press_one_to_listen(Name) ->
+press_one_to_listen() ->
+	press_one_to_listen(0).
+press_one_to_listen(5) ->
+	disconnect();
+press_one_to_listen(Count) ->
 	play(get(uuid), "invited.wav"),
 	receive 
 		{call_event, Data} ->
@@ -181,14 +182,11 @@ press_one_to_listen(Name) ->
 
 			case EventName of 
 				"DTMF" ->
-					
 					Dtmf = proplists:get_value("DTMF-Digit", Rest),
 					error_logger:info_msg("myhandler : ~p pressed ~p ~n",[UUID, Dtmf]),
 					case Dtmf of
 						"1" ->
 							play(get(uuid), "takenote.wav"),
-							
-							%%phrase(get(uuid), get(reference)),
 							bridge_to_conference(get(uuid));
 						_ 	->
 							disconnect()
@@ -202,15 +200,15 @@ press_one_to_listen(Name) ->
 					disconnect();
 											
 				_ ->
-					press_one_to_listen(Name)
+					press_one_to_listen(Count)
 			end;
 						
 		{Event, Data} ->
 			EventName = freeswitch:get_event_name(Data),
 			io:format("E: ~p N: ~p~n", [Event, EventName]),
-			press_one_to_listen(Name)
+			press_one_to_listen(Count)
 	after 5000 ->
-		connected(get(uuid))
+		press_one_to_listen(Count + 1)
 	end.
 	
 														
